@@ -18,10 +18,11 @@ OPTIONS = [
 URLS = [
     ('ocaml', 'http://caml.inria.fr/pub/distrib/ocaml-3.12/ocaml-3.12.0.tar.gz'),
     ('findlib', 'http://download.camlcity.org/download/findlib-1.2.1.tar.gz'),
+    ('ounit', 'http://www.xs4all.nl/~mmzeeman/ocaml/ounit-1.0.3.tar.gz'),
     ('res', 'http://hg.ocaml.info/release/res/archive/release-3.2.0.tar.gz'),
     ('pcre-ocaml', 'http://hg.ocaml.info/release/pcre-ocaml/archive/release-6.1.0.tar.gz'),
+    ('type-conv', 'http://hg.ocaml.info/release/type-conv/archive/release-2.0.1.tar.gz'),    
     ('fieldslib', 'http://www.janestreet.com/ocaml/fieldslib-0.1.0.tgz'),
-    ('type-conv', 'http://hg.ocaml.info/release/type-conv/archive/release-2.0.1.tar.gz'),
     ('sexplib', 'http://www.janestreet.com/ocaml/sexplib310-release-4.2.15.tar.gz'),
     ('bin-prot', 'http://hg.ocaml.info/release/bin-prot/archive/release-1.2.23.tar.gz'),
     ('core', 'http://www.janestreet.com/ocaml/core-0.6.0.tgz'),
@@ -65,7 +66,7 @@ def main(options, _args):
                                         stdoutf=None,
                                         stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
-        elif project in ['findlib', 'pcre-ocaml']:
+        elif project in ['findlib']:
             commands.runSingleProgramEx('cd %s/*%s*; ./configure' % (buildDir, project),
                                         stdoutf=None,
                                         stderrf=sys.stderr.write,
@@ -83,11 +84,13 @@ def main(options, _args):
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make' % (buildDir, project),
                                         stdoutf=None,
-                                        stderrf=sys.stderr.write,                                        
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make install' % (buildDir, project),
                                         stdoutf=None,
-                                        stderrf=sys.stderr.write,                                        
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
         else:
             commands.runSingleProgramEx('cd %s/*%s*; make' % (buildDir, project),
@@ -102,6 +105,9 @@ def main(options, _args):
                                         log=logging.DEBUG)
 
         commands.runSystemEx('rm -rf %s/*' % buildDir, log=logging.DEBUG)
+
+    print 'Be sure to update your environment variables:'
+    print 'export PATH=%s:$PATH' % (os.path.join(options('prefix'), 'bin'),)
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS, putInGeneral=False))
