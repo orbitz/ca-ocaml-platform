@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import os
 
 from igs.utils import commands
@@ -10,14 +11,15 @@ OPTIONS = [
     ('prefix', '-p', '--prefix', 'Prefix directory to install everything into', cli.notNone),
     ('tmpdir', '', '--tmpdir', 'Temporary directory to use, defaults to $TMPDIR and then to /tmp',
      func.compose(cli.defaultIfNone('/tmp'), cli.defaultIfNone(os.getenv('TMPDIR')))),
-    ('debug', '-d', '--debug', 'Turn debugging output on', func.identity)
+    ('debug', '-d', '--debug', 'Turn debugging output on', func.identity, cli.BINARY)
     ]
 
 
 URLS = [
     ('ocaml', 'http://caml.inria.fr/pub/distrib/ocaml-3.12/ocaml-3.12.0.tar.gz'),
+    ('findlib', 'http://download.camlcity.org/download/findlib-1.2.1.tar.gz'),
     ('res', 'http://hg.ocaml.info/release/res/archive/release-3.2.0.tar.gz'),
-    ('ocaml-pcre', 'http://hg.ocaml.info/release/pcre-ocaml/archive/release-6.1.0.tar.gz'),
+    ('pcre-ocaml', 'http://hg.ocaml.info/release/pcre-ocaml/archive/release-6.1.0.tar.gz'),
     ('fieldslib', 'http://www.janestreet.com/ocaml/fieldslib-0.1.0.tgz'),
     ('type-conv', 'http://hg.ocaml.info/release/type-conv/archive/release-2.0.1.tar.gz'),
     ('sexplib', 'http://www.janestreet.com/ocaml/sexplib310-release-4.2.15.tar.gz'),
@@ -27,18 +29,21 @@ URLS = [
 
 
 def untarToDir(tarFile, outDir):
-    commands.runSystemEx('cd %s; tar -zxvf %s' % (outDir, tarFile), log=logging.DEBUG)
+    commands.runSingleProgramEx('cd %s; tar -zxvf %s' % (outDir, tarFile),
+                                stdoutf=None,
+                                stderrf=None,
+                                log=logging.DEBUG)
 
     
 def main(options, _args):
     logging.DEBUG = options('debug')
-    env = {'PATH': options('prefix') + ':' + os.getenv('PATH')}
+    env = {'PATH': os.path.join(options('prefix'), 'bin') + ':' + os.getenv('PATH')}
 
     tmpDir = os.path.join(options('tmpdir'), 'ca-ocaml-platform')
     buildDir = os.path.join(tmpDir, 'build')
     commands.runSystem('rm -rf ' + tmpDir, log=logging.DEBUG)
     commands.runSystemEx('mkdir -p ' + tmpDir, log=logging.DEBUG)
-    commands.runySystemEx('mkdir -p ' + buildDir, log=logging.DEBUG)
+    commands.runSystemEx('mkdir -p ' + buildDir, log=logging.DEBUG)
     
     #
     # Download everything first
@@ -53,26 +58,50 @@ def main(options, _args):
         # Ocaml gets special attention because it needs the prefix
         if project == 'ocaml':
             commands.runSingleProgramEx('cd %s/*%s*; ./configure -prefix %s' % (buildDir, project, options('prefix')),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make world opt install' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
-        elif project == 'ocaml-pcre':
+        elif project in ['findlib', 'pcre-ocaml']:
             commands.runSingleProgramEx('cd %s/*%s*; ./configure' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
-            commands.runSingleProgramEx('cd %s/*%s*; make install' % (buildDir, project),
+            commands.runSingleProgramEx('cd %s/*%s*; make all opt install' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
         elif project == 'core':
             commands.runSingleProgramEx('cd %s/*%s*; patch -p1 -i %s/patches/core-0.6.0-3.12.0.patch' % (buildDir, project, os.getcwd()),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make install' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
         else:
             commands.runSingleProgramEx('cd %s/*%s*; make' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
             commands.runSingleProgramEx('cd %s/*%s*; make install' % (buildDir, project),
+                                        stdoutf=None,
+                                        stderrf=sys.stderr.write,
+                                        addEnv=env,
                                         log=logging.DEBUG)
+
+        commands.runSystemEx('rm -rf %s/*' % buildDir, log=logging.DEBUG)
 
 if __name__ == '__main__':
     main(*cli.buildConfigN(OPTIONS, putInGeneral=False))
