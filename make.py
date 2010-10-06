@@ -8,7 +8,8 @@ from igs.utils import functional as func
 from igs.utils import cli
 
 OPTIONS = [
-    ('prefix', '-p', '--prefix', 'Prefix directory to install everything into', cli.notNone),
+    ('prefix', '-p', '--prefix', 'Prefix directory to install everything into',
+     func.compose(os.path.expanduser, os.path.expandvars, cli.notNone)),
     ('tmpdir', '', '--tmpdir', 'Temporary directory to use, defaults to $TMPDIR and then to /tmp',
      func.compose(cli.defaultIfNone('/tmp'), cli.defaultIfNone(os.getenv('TMPDIR')))),
     ('debug', '-d', '--debug', 'Turn debugging output on', func.identity, cli.BINARY)
