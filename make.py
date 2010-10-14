@@ -18,7 +18,7 @@ OPTIONS = [
 
 URLS = [
     ('ocaml', 'http://caml.inria.fr/pub/distrib/ocaml-3.12/ocaml-3.12.0.tar.gz'),
-    ('findlib', 'http://download.camlcity.org/download/findlib-1.2.1.tar.gz'),
+    ('findlib', 'http://download.camlcity.org/download/findlib-1.2.6.tar.gz'),
     ('ounit', 'http://www.xs4all.nl/~mmzeeman/ocaml/ounit-1.0.3.tar.gz'),
     ('res', 'http://hg.ocaml.info/release/res/archive/release-3.2.0.tar.gz'),
     ('pcre-ocaml', 'http://hg.ocaml.info/release/pcre-ocaml/archive/release-6.1.0.tar.gz'),
