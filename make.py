@@ -63,7 +63,7 @@ def main(options, _args):
                                         stdoutf=None,
                                         stderrf=sys.stderr.write,
                                         log=logging.DEBUG)
-            commands.runSingleProgramEx('cd %s/*%s*; make world opt install' % (buildDir, project),
+            commands.runSingleProgramEx('cd %s/*%s*; make world.opt install' % (buildDir, project),
                                         stdoutf=None,
                                         stderrf=sys.stderr.write,                                        
                                         log=logging.DEBUG)
